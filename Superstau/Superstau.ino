@@ -1,134 +1,47 @@
 #include <FastLED.h>
+#include <Math.h>
 
 #define LED_PIN 4
-#define KEYP_PIN A1
 
 #define COLOR_ORDER GRB
 #define CHIPSET WS2812B
+#define NUM_CARS 13
 
 #define BRIGHTNESS 64
+#define DEFAULT_COLOR CRGB(10, 10, 7)
 
-#define NON 0  // NONE
-#define CRE 1  // CAR RED
-#define CYE 2  // CAR YELOW
-#define BWH 3  // BUS WHITE
-#define CB1 4  // CAR BROWN 1
-#define TOR 5  // TRUCK ORANGE
-#define CG1 6  // CAR GREEN 1
-#define CG2 7  // CAR GREEN 2
-#define CB2 8  // CAR BROWN 2
-#define CLG 9  // CAR LIGHT GREEN
-#define CBL 10 // CAR BLUE
-#define CPU 11 // CAR PURPLE
-#define TGR 12 // TRUCK GREEN
-#define EXT 14 // EXIT
-#define BOR 13 // BORDER
-
-#define X_AXIS 0
-#define Y_AXIS 1
-
-#define CURSOR_MOVE false
-#define CURSOR_SELECTED true
-#define MAX_VEHICLE_SIZE 3 + 1
-#define BLINK_RATE 500
-
-#define COL1_PIN 5
-#define COL2_PIN 6
-#define COL3_PIN 7
-#define COL4_PIN 8
-#define ROW1_PIN 9
-#define ROW2_PIN 10
-#define ROW3_PIN 11
-#define ROW4_PIN 12
-
-typedef struct
-{
-    int x;
-    int y;
-} Coord;
-
-typedef struct
-{
-    int *pixel;
-    int size;
-    int cursorX;
-    int cursorY;
-} Level;
-
-int cursorX = 0;
-int cursorY = 0;
-bool cursorState = CURSOR_MOVE;
-
-int state = 0;
-
-int boardSize = 0;
-int *pixel = NULL;
-
-// Not more than one level, because out of RAM otherwise :/
-int level1[8 * 8] = {
-    BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR,
-    BOR, NON, CYE, CYE, BWH, NON, CB1, BOR,
-    BOR, TOR, CG1, CG1, BWH, NON, CB1, BOR,
-    EXT, TOR, CG2, CB2, CRE, CRE, NON, BOR,
-    BOR, TOR, CG2, CB2, NON, CBL, CBL, BOR,
-    BOR, NON, CPU, CPU, CPU, NON, NON, BOR,
-    BOR, NON, NON, NON, TGR, TGR, TGR, BOR,
-    BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
-Level lvl1 = {level1, 8, 4, 3};
-
-// int level2[8 * 8] = {
-//     BOR, BOR, BOR, BOR, EXT, BOR, BOR, BOR,
-//     BOR, NON, NON, NON, NON, NON, NON, BOR,
-//     BOR, CYE, BWH, NON, CB1, CB1, CB1, BOR,
-//     BOR, CYE, BWH, TOR, TOR, NON, CG1, BOR,
-//     BOR, CG2, CG2, NON, NON, CB2, CG1, BOR,
-//     BOR, NON, CPU, CPU, CRE, CB2, NON, BOR,
-//     BOR, NON, NON, NON, CRE, CLG, CLG, BOR,
-//     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
-// Level lvl1 = {level2, 8, 4, 5};
-
-// int level3[8 * 8] = {
-//     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR,
-//     BOR, CYE, CYE, BWH, NON, CB1, TOR, BOR,
-//     BOR, NON, NON, BWH, NON, CB1, TOR, BOR,
-//     BOR, CG1, NON, BWH, CRE, CRE, TOR, EXT,
-//     BOR, CG1, NON, NON, CB2, CLG, CLG, BOR,
-//     BOR, NON, CBL, CBL, CB2, NON, NON, BOR,
-//     BOR, CPU, CPU, NON, NON, TGR, TGR, BOR,
-//     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
-// Level lvl1 = {level3, 8, 4, 5};
-
-int winScreen[16 * 16] = {
-    NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
-    NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
-    NON, NON, TOR, NON, TOR, NON, NON, CG1, NON, NON, CPU, NON, CPU, NON, NON, NON,
-    NON, NON, NON, TOR, NON, NON, CG1, NON, CG1, NON, CPU, NON, CPU, NON, NON, NON,
-    NON, NON, NON, TOR, NON, NON, CG1, NON, CG1, NON, CPU, NON, CPU, NON, NON, NON,
-    NON, NON, NON, TOR, NON, NON, NON, CG1, NON, NON, NON, CPU, NON, NON, NON, NON,
-    NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
-    NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
-    NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
-    NON, CBL, NON, NON, NON, CBL, NON, NON, CRE, NON, NON, BWH, NON, NON, BWH, NON,
-    NON, CBL, NON, CBL, NON, CBL, NON, CRE, NON, CRE, NON, BWH, BWH, NON, BWH, NON,
-    NON, CBL, NON, CBL, NON, CBL, NON, CRE, NON, CRE, NON, BWH, NON, BWH, BWH, NON,
-    NON, NON, CBL, NON, CBL, NON, NON, NON, CRE, NON, NON, BWH, NON, NON, BWH, NON,
-    NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
-    NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
-    NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON};
-Level lvlWin = {winScreen, 16, -1, -1};
-
-int levelEmpty[2 * 2] = {
-    NON, NON,
-    NON, NON};
-Level lvlEmpty = {levelEmpty, 2, -1, -1};
-
-Coord neighbors[MAX_VEHICLE_SIZE];
-
+// Params for width and height
 const uint8_t kMatrixWidth = 16;
 const uint8_t kMatrixHeight = 16;
 
+// Param for different pixel layouts
 const bool kMatrixSerpentineLayout = true;
 const bool kMatrixVertical = false;
+
+struct Car
+{
+    CRGB color;
+    uint8_t type;
+    uint8_t pos[2];
+    uint8_t direction;
+    uint8_t length;
+};
+
+enum CarType
+{
+    NON,
+    CAR,
+    REDCAR,
+    CURSOR
+};
+
+enum Direction
+{
+    VERTICAL,
+    HORIZONTAL
+};
+
+struct Car cars[10];
 
 uint16_t XY(uint8_t x, uint8_t y)
 {
@@ -178,6 +91,31 @@ uint16_t XY(uint8_t x, uint8_t y)
     return i;
 }
 
+struct Car getCarAt(int posX, int posY)
+{
+    for (int i = 0; i < NUM_CARS; i++)
+    {
+        struct Car car = cars[i];
+
+        if (car.type == CAR || car.type == REDCAR)
+        {
+
+            // Serial.print("X3: ");
+            // Serial.println(posX);
+            // Serial.print("Y3: ");
+            // Serial.println(posY);
+
+            if (getIntersection(car, posX, posY))
+            {
+                Serial.println("FOUND CAR");
+                return car;
+            }
+        }
+    }
+    struct Car car1 = {DEFAULT_COLOR, NON};
+    return car1;
+}
+
 #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
 CRGB leds_plus_safety_pixel[NUM_LEDS + 1];
 CRGB *const leds(leds_plus_safety_pixel + 1);
@@ -191,401 +129,57 @@ uint16_t XYsafe(uint8_t x, uint8_t y)
     return XY(x, y);
 }
 
-void DrawOneFrame(int cursorScale = 0)
+void renderFrame()
 {
-    int xOffset = (kMatrixWidth - boardSize) / 2;
-    int yOffset = (kMatrixHeight - boardSize) / 2;
-    for (int i = 0; i < boardSize; i++)
+    for (int posX = 0; posX < 16; posX++)
     {
-        for (int j = 0; j < boardSize; j++)
+        for (int posY = 0; posY < 16; posY++)
         {
-            CRGB color = getPixelColor(i, j);
-            if (i == cursorX && j == cursorY)
-            {
-                color.r = max(color.r, 20) * BLINK_RATE / cursorScale;
-                color.g = max(color.g, 20) * BLINK_RATE / cursorScale;
-                color.b = max(color.b, 20) * BLINK_RATE / cursorScale;
-            }
+            struct Car car = getCarAt(posX, posY);
 
-            drawPixel(xOffset + i, yOffset + j, color);
+            Serial.print("(");
+            Serial.print(posX);
+            Serial.print(",");
+            Serial.print(posY);
+            Serial.println(") ");
+
+            // Serial.print(car.color.red);
+            // Serial.print(" ");
+            // Serial.print(car.color.green);
+            // Serial.print(" ");
+            // Serial.println(car.color.blue);
+
+            leds[XY(posX, posY)] = car.color;
+            FastLED.show();
         }
     }
-    FastLED.show();
 }
 
-void changeLevel(Level lvl)
+bool getIntersection(struct Car car, int x, int y)
 {
-    pixel = lvl.pixel;
-    boardSize = lvl.size;
+    // Serial.print("X2: ");
+    // Serial.println(car.pos[0]);
+    // Serial.print("Y2: ");
+    // Serial.println(car.pos[1]);
 
-    cursorX = lvl.cursorX;
-    cursorY = lvl.cursorY;
-    cursorState = CURSOR_MOVE;
-
-    for (int i = 0; i < kMatrixWidth; i++)
+    if (car.direction == HORIZONTAL)
     {
-        for (int j = 0; j < kMatrixHeight; j++)
+        if (car.pos[1] == y)
         {
-            // Reset screen
-            drawPixel(i, j, toColor(NON));
+            return (car.pos[0] + car.length > x) && (car.pos[0] <= x);
         }
     }
-    DrawOneFrame();
-}
-
-CRGB toColor(int colorId)
-{
-    switch (colorId)
+    else if (car.direction == VERTICAL)
     {
-    case 0:
-        return CRGB(0, 0, 0);
-    case 1:
-        return CRGB(255, 0, 0); // RED CAR!!!
-    case 2:
-        return CRGB(230, 215, 0); // Yellow
-    case 3:
-        return CRGB(255, 255, 255); // White
-    case 4:
-        return CRGB(95, 60, 30); // Rose
-    case 5:
-        return CRGB(255, 110, 0); // Dark Orange
-    case 6:
-        return CRGB(0, 255, 0); // Green
-    case 7:
-        return CRGB(5, 40, 0); // Dark Green
-    case 8:
-        return CRGB(255, 0, 255); // Magenta
-    case 9:
-        return CRGB(0, 128, 128); // Teal
-    case 10:
-        return CRGB(0, 0, 255); // Blue
-    case 11:
-        return CRGB(80, 30, 10); // Violet
-    case 12:
-        return CRGB(0, 255, 127); // Cyan
-    case 13:
-        return CRGB(10, 10, 8);
-    case 14:
-        return CRGB(0, 0, 0);
-
-    default:
-        return CRGB(5, 5, 4);
-    }
-}
-
-int drawPixel(int posX, int posY, CRGB color)
-{
-    // invert x coords to fix flipped display
-    leds[XY(kMatrixWidth - 1 - posX, posY)] = color;
-}
-
-int getPixel(int posX, int posY)
-{
-    return pixel[posX + posY * boardSize];
-}
-
-void setPixel(int posX, int posY, int colorId)
-{
-    pixel[posX + posY * boardSize] = colorId;
-}
-
-CRGB getPixelColor(int posX, int posY)
-{
-    return toColor(getPixel(posX, posY));
-}
-
-void getNeighboringPixels(int posX, int posY)
-{
-    int direction = -1;
-    for (int i = 0; i < MAX_VEHICLE_SIZE; i++)
-    {
-        neighbors[i].x = -1;
-        neighbors[i].y = -1;
-    }
-    int neighborCounter = 1;
-    int colorId = getPixel(posX, posY);
-    if (colorId == BOR || colorId == NON || colorId == EXT)
-    {
-        neighbors[MAX_VEHICLE_SIZE - 1].y = -1;
-        return;
-    }
-
-    neighbors[0].x = posX;
-    neighbors[0].y = posY;
-
-    for (int offsetX = 0; offsetX < MAX_VEHICLE_SIZE + 1; offsetX++)
-    {
-        //        Serial.print(posX + offsetX - (MAX_VEHICLE_SIZE / 2 - 1));
-        //        Serial.print(":");
-        //        Serial.println(posY);
-        if ((posX + offsetX - 2) != posX && getPixel(posX + offsetX - (MAX_VEHICLE_SIZE / 2 - 1), posY) == colorId)
+        if (car.pos[0] == x)
         {
-            neighbors[neighborCounter].x = posX + offsetX - 2;
-            neighbors[neighborCounter].y = posY;
-            neighborCounter++;
-            direction = X_AXIS;
+            bool ex = (car.pos[1] + car.length > y) && (car.pos[1] <= y);
+            // Serial.print("EX: ");
+            // Serial.println(ex);
+            return ex;
         }
     }
-    for (int offsetY = 0; offsetY < MAX_VEHICLE_SIZE + 1; offsetY++)
-    {
-        if ((posY + offsetY - 2) != posY && getPixel(posX, posY + offsetY - (MAX_VEHICLE_SIZE / 2 - 1)) == colorId)
-        {
-            //            Serial.print(getPixel(posX, posY + offsetY - (MAX_VEHICLE_SIZE / 2)));
-            //            Serial.print("==");
-            //            Serial.println(colorId);
-            neighbors[neighborCounter].x = posX;
-            neighbors[neighborCounter].y = posY + offsetY - 2;
-            neighborCounter++;
-            direction = Y_AXIS;
-        }
-    }
-    neighbors[MAX_VEHICLE_SIZE - 1].x = neighborCounter;
-    neighbors[MAX_VEHICLE_SIZE - 1].y = direction;
-    // printNeighbors();
-}
-
-bool noNeighboursCollision(int direction)
-{
-    int colorId = getPixel(neighbors[0].x, neighbors[0].y);
-    int segments = neighbors[MAX_VEHICLE_SIZE - 1].x;
-    for (int i = 0; i < segments; i++)
-    {
-        // Serial.print(i);
-        // Serial.print(" - ");
-        bool noCollission = true;
-        switch (direction)
-        {
-        case 12:
-            noCollission = noCollision(neighbors[i].x, neighbors[i].y - 1, colorId);
-            break;
-        case 3:
-            noCollission = noCollision(neighbors[i].x + 1, neighbors[i].y, colorId);
-            break;
-        case 6:
-            noCollission = noCollision(neighbors[i].x, neighbors[i].y + 1, colorId);
-            // Serial.println(noCollission);
-            break;
-        case 9:
-            noCollission = noCollision(neighbors[i].x - 1, neighbors[i].y, colorId);
-            break;
-        default:
-            noCollission = true;
-        }
-        if (noCollission == false)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-void moveNeighbours(int direction)
-{
-    int colorId = getPixel(neighbors[0].x, neighbors[0].y);
-    int segments = neighbors[MAX_VEHICLE_SIZE - 1].x;
-    //Serial.print("Num Segments to move: ");
-    //Serial.println(segments);
-    for (int i = 0; i < segments; i++)
-    {
-        setPixel(neighbors[i].x, neighbors[i].y, NON);
-    }
-
-    for (int i = 0; i < segments; i++)
-    {
-        if (neighbors[i].x == -1 || neighbors[i].y == -1)
-        {
-            continue;
-        }
-
-        switch (direction)
-        {
-        case 12:
-            setPixel(neighbors[i].x, neighbors[i].y - 1, colorId);
-            break;
-        case 3:
-            setPixel(neighbors[i].x + 1, neighbors[i].y, colorId);
-            break;
-        case 6:
-            setPixel(neighbors[i].x, neighbors[i].y + 1, colorId);
-            break;
-        case 9:
-            setPixel(neighbors[i].x - 1, neighbors[i].y, colorId);
-            break;
-        }
-    }
-}
-
-bool noCollision(int posX, int posY, int allowedColor)
-{
-    int colorId = getPixel(posX, posY);
-    if (colorId == allowedColor)
-    {
-        return true;
-    }
-    if (colorId == NON)
-    {
-        return true;
-    }
-    if (colorId == EXT)
-    {
-        // WIN
-        while(true) {
-            changeLevel(lvlWin);
-            delay(1000);
-            changeLevel(lvlEmpty);
-            delay(300);
-        }
-
-        return true;
-    }
-
     return false;
-}
-
-void printNeighbors()
-{
-    for (int i = 0; i < MAX_VEHICLE_SIZE; i++)
-    {
-        Serial.print(i);
-        Serial.print(": ");
-        Serial.print(neighbors[i].x);
-        Serial.print(", ");
-        Serial.println(neighbors[i].y);
-    }
-}
-
-void moveCursor(int direction)
-{
-    switch (direction)
-    {
-    case 12:
-        cursorY--;
-        if (cursorY < 0)
-            cursorY = 0;
-        break;
-    case 3:
-        cursorX++;
-        if (cursorX >= boardSize)
-            cursorX = boardSize - 1;
-        break;
-    case 6:
-        cursorY++;
-        if (cursorY >= boardSize)
-            cursorY = boardSize - 1;
-        break;
-    case 9:
-        cursorX--;
-        if (cursorX < 0)
-            cursorX = 0;
-        break;
-    }
-}
-
-void checkButtons()
-{
-    /*    C4 C3 C2 C1
-       . R1 X  X  X  X
-       . R1 X  X  X  X
-       . R2 X  X  X  X
-       . R3 X  X  X  X
-    */
-
-    // COL1
-    digitalWrite(COL1_PIN, LOW);
-    digitalWrite(COL2_PIN, LOW);
-    digitalWrite(COL3_PIN, LOW);
-    digitalWrite(COL1_PIN, HIGH);
-    if (digitalRead(ROW3_PIN))
-    {
-        // right
-        checkButtonPress(3);
-        return;
-    }
-
-    // COL2
-    digitalWrite(COL1_PIN, LOW);
-    digitalWrite(COL2_PIN, HIGH);
-    if (digitalRead(ROW3_PIN))
-    {
-        // select
-        checkButtonPress(1);
-        return;
-    }
-    if (digitalRead(ROW2_PIN))
-    {
-        // up
-        checkButtonPress(12);
-        return;
-    }
-    if (digitalRead(ROW4_PIN))
-    {
-        // down
-        checkButtonPress(6);
-        return;
-    }
-
-    // COL3
-    digitalWrite(COL2_PIN, LOW);
-    digitalWrite(COL3_PIN, HIGH);
-    if (digitalRead(ROW3_PIN))
-    {
-        // left
-        checkButtonPress(9);
-        return;
-    }
-
-    // Nothing
-    checkButtonPress(0);
-}
-
-void checkButtonPress(int button)
-{
-    if (state != button)
-    {
-        // change
-        //Serial.println(button);
-
-        state = button;
-        int color_id = getPixel(cursorX, cursorY);
-        if (button == 1 && color_id != NON && color_id != EXT && color_id != BOR)
-        {
-            cursorState = !cursorState;
-            return;
-        }
-        if (cursorState == CURSOR_SELECTED)
-        {
-            getNeighboringPixels(cursorX, cursorY);
-            int carSegments = neighbors[MAX_VEHICLE_SIZE - 1].x;
-            int dir = neighbors[MAX_VEHICLE_SIZE - 1].y;
-            //Serial.print("direction: ");
-            //Serial.println(dir);
-            //Serial.print("Segments: ");
-            //Serial.println(carSegments);
-            if (dir == -1)
-            {
-                return;
-            }
-            if ((dir == X_AXIS && (button == 3 || button == 9)) || (dir == Y_AXIS && (button == 12 || button == 6)))
-            {
-                bool noCollission = noNeighboursCollision(button);
-                //Serial.print("collision: ");
-                if (noCollission == true)
-                {
-                    //Serial.println("false");
-                    moveNeighbours(button);
-                    moveCursor(button);
-                }
-                else
-                {
-                    //Serial.println("true");
-                }
-            }
-        }
-        else
-        {
-            moveCursor(button);
-        }
-    }
 }
 
 void setup()
@@ -594,24 +188,126 @@ void setup()
 
     FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
     FastLED.setBrightness(BRIGHTNESS);
-    pinMode(COL1_PIN, OUTPUT);
-    pinMode(COL2_PIN, OUTPUT);
-    pinMode(COL3_PIN, OUTPUT);
-    pinMode(COL4_PIN, OUTPUT);
 
-    pinMode(ROW1_PIN, INPUT);
-    pinMode(ROW2_PIN, INPUT);
-    pinMode(ROW3_PIN, INPUT);
-    pinMode(ROW4_PIN, INPUT);
+    {
+        // Cursor
+        cars[0].color = CRGB(0, 0, 0);
+        cars[0].type = CURSOR;
+        cars[0].pos[0] = 3;
+        cars[0].pos[1] = 3;
+        cars[0].length = 1;
 
-    changeLevel(lvl1);
+        // RED CAR
+        cars[1].color = CRGB(255, 0, 0);
+        cars[1].type = REDCAR;
+        cars[1].pos[0] = 3;
+        cars[1].pos[1] = 2;
+        cars[1].direction = HORIZONTAL;
+        cars[1].length = 2;
+
+        // CAR lower left
+        cars[2].color = CRGB(0, 255, 0);
+        cars[2].type = CAR;
+        cars[2].direction = HORIZONTAL;
+        cars[2].pos[0] = 0;
+        cars[2].pos[1] = 5;
+        cars[2].length = 2;
+
+        // TRUCK lower right
+        cars[3].color = CRGB(255, 255, 0);
+        cars[3].type = CAR;
+        cars[3].direction = HORIZONTAL;
+        cars[3].pos[0] = 3;
+        cars[3].pos[1] = 5;
+        cars[3].length = 3;
+
+        // Turquoise car
+        cars[4].color = CRGB(0, 0, 255);
+        cars[4].type = CAR;
+        cars[4].direction = HORIZONTAL;
+        cars[4].pos[0] = 1;
+        cars[4].pos[1] = 4;
+        cars[4].length = 2;
+
+        // Brown car
+        cars[5].color = CRGB(0, 255, 255);
+        cars[5].type = CAR;
+        cars[5].direction = VERTICAL;
+        cars[5].pos[0] = 3;
+        cars[5].pos[1] = 3;
+        cars[5].length = 2;
+
+        // light green car
+        cars[6].color = CRGB(255, 0, 255);
+        cars[6].type = CAR;
+        cars[6].direction = HORIZONTAL;
+        cars[6].pos[0] = 4;
+        cars[6].pos[1] = 3;
+        cars[6].length = 2;
+
+        // green car 1
+        cars[7].color = CRGB(255, 255, 255);
+        cars[7].type = CAR;
+        cars[7].direction = VERTICAL;
+        cars[7].pos[0] = 0;
+        cars[7].pos[1] = 2;
+        cars[7].length = 2;
+
+        // green car 2
+        cars[8].color = CRGB(255, 255, 255);
+        cars[8].type = CAR;
+        cars[8].direction = VERTICAL;
+        cars[8].pos[0] = 1;
+        cars[8].pos[1] = 2;
+        cars[8].length = 2;
+
+        // orange truck
+        cars[9].color = CRGB(255, 128, 128);
+        cars[9].type = CAR;
+        cars[9].direction = VERTICAL;
+        cars[9].pos[0] = 5;
+        cars[9].pos[1] = 0;
+        cars[9].length = 3;
+
+        // brown pickup top
+        cars[10].color = CRGB(128, 255, 255);
+        cars[10].type = CAR;
+        cars[10].direction = VERTICAL;
+        cars[10].pos[0] = 4;
+        cars[10].pos[1] = 0;
+        cars[10].length = 2;
+
+        // white bus
+        cars[11].color = CRGB(255, 255, 128);
+        cars[11].type = CAR;
+        cars[11].direction = VERTICAL;
+        cars[11].pos[0] = 2;
+        cars[11].pos[1] = 0;
+        cars[11].length = 3;
+
+        // yellow car
+        cars[12].color = CRGB(255, 128, 255);
+        cars[12].type = CAR;
+        cars[12].direction = HORIZONTAL;
+        cars[12].pos[0] = 0;
+        cars[12].pos[1] = 0;
+        cars[12].length = 2;
+    }
+
+    // struct Car car = getCarAt(2, 0);
+
+    // Serial.print(car.color.red);
+    // Serial.print(",");
+    // Serial.print(car.color.green);
+    // Serial.print(",");
+    // Serial.println(car.color.blue);
 }
 
 void loop()
 {
-    uint32_t ms = millis();
-    DrawOneFrame(ms % BLINK_RATE + 1);
-    delay(10);
+    renderFrame();
 
-    checkButtons();
+    while (1)
+    {
+    }
 }
