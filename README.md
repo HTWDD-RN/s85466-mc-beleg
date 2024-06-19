@@ -3,7 +3,7 @@ Beleg für Programmierung von Microcontrollern: Spiel mit Arduino
 
 von Maxim Zimmermann (s85526) und Christoph Born (s85466)
 
-![](docs/setup%20whole.jpg)
+![](docs/game.jpg)
 
 ## Spielkonzept
 Zusammenhängende Pixel gleicher Farbe auf der RGB-Matrix repräsentieren ein Fahrzeug. Ziel des Spiels ist es, das rote Auto auszuparken und durch die Lücke in der Begrenzung aus dem Spielfeld zu fahren. Dazu können sämtliche Fahrzeuge einzeln bewegt werden, jedoch nur vorwärts oder rückwärts
@@ -26,9 +26,12 @@ Aktuell gibt es 3 verschiedene Level mit unterschiedlichen Schwierigkeitsgraden.
 - Arduino Uno Rev. 3
 - RGB Matrix 16x16 mit WS2812B
 - Tastenmatrix 4x4
+- 4 Pull-Down Widerstände für die Spalten der Tastenmatrix
 - USB-Stromversorgung mit ausreichender Leistung für die LED-Matrix
 
-![](docs/setup%20close%20up.jpg)
+![](docs/setup.jpg)
+
+Die Belegung der Arduino-Pins kann im oberen Teil des Codes abgelesen und auch angepasst werden.
 
 ## Software
 
