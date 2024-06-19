@@ -29,7 +29,11 @@ Aktuell gibt es 3 verschiedene Level mit unterschiedlichen Schwierigkeitsgraden.
 - 4 Pull-Down Widerstände für die Spalten der Tastenmatrix
 - USB-Stromversorgung mit ausreichender Leistung für die LED-Matrix
 
+### Aufbau
 ![](docs/setup.jpg)
+
+### Schaltung
+![](docs/circuit-wokwi.png)
 
 Die Belegung der Arduino-Pins kann im oberen Teil des Codes abgelesen und auch angepasst werden.
 
