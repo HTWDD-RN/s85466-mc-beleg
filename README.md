@@ -31,3 +31,19 @@ Weitere Level mit unterschiedlichen Schwierigkeitsgraden sind im Code definiert,
 - USB-Stromversorgung mit ausreichender Leistung für die LED-Matrix
 
 ![](docs/setup%20close%20up.jpg)
+
+## Software
+
+### Wichtige Variablen-Rollen
+
+| Rolle | Name(n)  | Bschreibung | Wertebereich | ⇒ Datentyp |
+|------|--------|-------------|:------:|----------:|
+| color id | pixel[i], levelX[i], colorId | identifies object on pixel | 0...14 | uint8_t |
+| axis | direction, dir | x or y axis? | -1, 0, 1 | int8_t |
+| cursor state | cursorState | move or selected? | 0, 1 | bool
+| game coordinate | Coord.x/y, cursorX/Y, posX/Y | | -1, 15 | int8_t |
+| pixel coordinate | i/j, posX/Y | | 0, 16 | uint8_t |
+| button id | state, button, direction | indicates direction, like hours on clock | 0, 1, 3, 6, 9, 12 | uint8_t |
+| board size | size, boardSize | one side of square | 0...16 | uint8_t |
+| pixel coordinate offset | xOffset, yOffset | | 0...8 | uint8_t |
+| cursor intensity | cursorScale | time dependant | 0...500 | uint16_t |

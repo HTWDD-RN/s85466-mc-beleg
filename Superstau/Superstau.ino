@@ -43,29 +43,29 @@
 
 typedef struct
 {
-    int x;
-    int y;
+    int8_t x;
+    int8_t y;
 } Coord;
 
 typedef struct
 {
-    int *pixel;
-    int size;
-    int cursorX;
-    int cursorY;
+    uint8_t *pixel;
+    uint8_t size;
+    int8_t cursorX;
+    int8_t cursorY;
 } Level;
 
-int cursorX = 0;
-int cursorY = 0;
+int8_t cursorX = 0;
+int8_t cursorY = 0;
 bool cursorState = CURSOR_MOVE;
 
-int state = 0;
+uint8_t state = 0;
 
-int boardSize = 0;
-int *pixel = NULL;
+uint8_t boardSize = 0;
+uint8_t *pixel = NULL;
 
 // Not more than one level, because out of RAM otherwise :/
-int level1[8 * 8] = {
+uint8_t level1[8 * 8] = {
     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR,
     BOR, NON, CYE, CYE, BWH, NON, CB1, BOR,
     BOR, TOR, CG1, CG1, BWH, NON, CB1, BOR,
@@ -76,7 +76,7 @@ int level1[8 * 8] = {
     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
 Level lvl1 = {level1, 8, 4, 3};
 
-// int level2[8 * 8] = {
+// uint8_t level2[8 * 8] = {
 //     BOR, BOR, BOR, BOR, EXT, BOR, BOR, BOR,
 //     BOR, NON, NON, NON, NON, NON, NON, BOR,
 //     BOR, CYE, BWH, NON, CB1, CB1, CB1, BOR,
@@ -87,7 +87,7 @@ Level lvl1 = {level1, 8, 4, 3};
 //     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
 // Level lvl1 = {level2, 8, 4, 5};
 
-// int level3[8 * 8] = {
+// uint8_t level3[8 * 8] = {
 //     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR,
 //     BOR, CYE, CYE, BWH, NON, CB1, TOR, BOR,
 //     BOR, NON, NON, BWH, NON, CB1, TOR, BOR,
@@ -98,7 +98,7 @@ Level lvl1 = {level1, 8, 4, 3};
 //     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
 // Level lvl1 = {level3, 8, 4, 5};
 
-int winScreen[16 * 16] = {
+uint8_t winScreen[16 * 16] = {
     NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
     NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
     NON, NON, TOR, NON, TOR, NON, NON, CG1, NON, NON, CPU, NON, CPU, NON, NON, NON,
@@ -117,7 +117,7 @@ int winScreen[16 * 16] = {
     NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON};
 Level lvlWin = {winScreen, 16, -1, -1};
 
-int levelEmpty[2 * 2] = {
+uint8_t levelEmpty[2 * 2] = {
     NON, NON,
     NON, NON};
 Level lvlEmpty = {levelEmpty, 2, -1, -1};
@@ -191,13 +191,13 @@ uint16_t XYsafe(uint8_t x, uint8_t y)
     return XY(x, y);
 }
 
-void DrawOneFrame(int cursorScale = 0)
+void DrawOneFrame(uint16_t cursorScale = 0)
 {
-    int xOffset = (kMatrixWidth - boardSize) / 2;
-    int yOffset = (kMatrixHeight - boardSize) / 2;
-    for (int i = 0; i < boardSize; i++)
+    uint8_t xOffset = (kMatrixWidth - boardSize) / 2;
+    uint8_t yOffset = (kMatrixHeight - boardSize) / 2;
+    for (uint8_t i = 0; i < boardSize; i++)
     {
-        for (int j = 0; j < boardSize; j++)
+        for (uint8_t j = 0; j < boardSize; j++)
         {
             CRGB color = getPixelColor(i, j);
             if (i == cursorX && j == cursorY)
@@ -222,9 +222,9 @@ void changeLevel(Level lvl)
     cursorY = lvl.cursorY;
     cursorState = CURSOR_MOVE;
 
-    for (int i = 0; i < kMatrixWidth; i++)
+    for (uint8_t i = 0; i < kMatrixWidth; i++)
     {
-        for (int j = 0; j < kMatrixHeight; j++)
+        for (uint8_t j = 0; j < kMatrixHeight; j++)
         {
             // Reset screen
             drawPixel(i, j, toColor(NON));
@@ -233,7 +233,7 @@ void changeLevel(Level lvl)
     DrawOneFrame();
 }
 
-CRGB toColor(int colorId)
+CRGB toColor(uint8_t colorId)
 {
     switch (colorId)
     {
@@ -273,37 +273,41 @@ CRGB toColor(int colorId)
     }
 }
 
-int drawPixel(int posX, int posY, CRGB color)
+void drawPixel(uint8_t posX, uint8_t posY, CRGB color)
 {
     // invert x coords to fix flipped display
     leds[XY(kMatrixWidth - 1 - posX, posY)] = color;
 }
 
-int getPixel(int posX, int posY)
+uint8_t getPixel(int8_t posX, int8_t posY)
 {
+    if(posX < 0 || posY < 0)  return NON;
+
     return pixel[posX + posY * boardSize];
 }
 
-void setPixel(int posX, int posY, int colorId)
+void setPixel(int8_t posX, int8_t posY, uint8_t colorId)
 {
+    if(posX < 0 || posY < 0)  return;
+
     pixel[posX + posY * boardSize] = colorId;
 }
 
-CRGB getPixelColor(int posX, int posY)
+CRGB getPixelColor(uint8_t posX, uint8_t posY)
 {
     return toColor(getPixel(posX, posY));
 }
 
-void getNeighboringPixels(int posX, int posY)
+void getNeighboringPixels(uint8_t posX, uint8_t posY)
 {
-    int direction = -1;
-    for (int i = 0; i < MAX_VEHICLE_SIZE; i++)
+    int8_t direction = -1;
+    for (uint8_t i = 0; i < MAX_VEHICLE_SIZE; i++)
     {
         neighbors[i].x = -1;
         neighbors[i].y = -1;
     }
-    int neighborCounter = 1;
-    int colorId = getPixel(posX, posY);
+    uint8_t neighborCounter = 1;
+    uint8_t colorId = getPixel(posX, posY);
     if (colorId == BOR || colorId == NON || colorId == EXT)
     {
         neighbors[MAX_VEHICLE_SIZE - 1].y = -1;
@@ -313,7 +317,7 @@ void getNeighboringPixels(int posX, int posY)
     neighbors[0].x = posX;
     neighbors[0].y = posY;
 
-    for (int offsetX = 0; offsetX < MAX_VEHICLE_SIZE + 1; offsetX++)
+    for (uint8_t offsetX = 0; offsetX < MAX_VEHICLE_SIZE + 1; offsetX++)
     {
         //        Serial.print(posX + offsetX - (MAX_VEHICLE_SIZE / 2 - 1));
         //        Serial.print(":");
@@ -326,7 +330,7 @@ void getNeighboringPixels(int posX, int posY)
             direction = X_AXIS;
         }
     }
-    for (int offsetY = 0; offsetY < MAX_VEHICLE_SIZE + 1; offsetY++)
+    for (uint8_t offsetY = 0; offsetY < MAX_VEHICLE_SIZE + 1; offsetY++)
     {
         if ((posY + offsetY - 2) != posY && getPixel(posX, posY + offsetY - (MAX_VEHICLE_SIZE / 2 - 1)) == colorId)
         {
@@ -344,11 +348,11 @@ void getNeighboringPixels(int posX, int posY)
     // printNeighbors();
 }
 
-bool noNeighboursCollision(int direction)
+bool noNeighboursCollision(int8_t direction)
 {
-    int colorId = getPixel(neighbors[0].x, neighbors[0].y);
-    int segments = neighbors[MAX_VEHICLE_SIZE - 1].x;
-    for (int i = 0; i < segments; i++)
+    uint8_t colorId = getPixel(neighbors[0].x, neighbors[0].y);
+    uint8_t segments = neighbors[MAX_VEHICLE_SIZE - 1].x;
+    for (uint8_t i = 0; i < segments; i++)
     {
         // Serial.print(i);
         // Serial.print(" - ");
@@ -379,18 +383,18 @@ bool noNeighboursCollision(int direction)
     return true;
 }
 
-void moveNeighbours(int direction)
+void moveNeighbours(int8_t direction)
 {
-    int colorId = getPixel(neighbors[0].x, neighbors[0].y);
-    int segments = neighbors[MAX_VEHICLE_SIZE - 1].x;
+    uint8_t colorId = getPixel(neighbors[0].x, neighbors[0].y);
+    uint8_t segments = neighbors[MAX_VEHICLE_SIZE - 1].x;
     //Serial.print("Num Segments to move: ");
     //Serial.println(segments);
-    for (int i = 0; i < segments; i++)
+    for (uint8_t i = 0; i < segments; i++)
     {
         setPixel(neighbors[i].x, neighbors[i].y, NON);
     }
 
-    for (int i = 0; i < segments; i++)
+    for (uint8_t i = 0; i < segments; i++)
     {
         if (neighbors[i].x == -1 || neighbors[i].y == -1)
         {
@@ -415,9 +419,9 @@ void moveNeighbours(int direction)
     }
 }
 
-bool noCollision(int posX, int posY, int allowedColor)
+bool noCollision(int8_t posX, int8_t posY, uint8_t allowedColor)
 {
-    int colorId = getPixel(posX, posY);
+    uint8_t colorId = getPixel(posX, posY);
     if (colorId == allowedColor)
     {
         return true;
@@ -444,7 +448,7 @@ bool noCollision(int posX, int posY, int allowedColor)
 
 void printNeighbors()
 {
-    for (int i = 0; i < MAX_VEHICLE_SIZE; i++)
+    for (uint8_t i = 0; i < MAX_VEHICLE_SIZE; i++)
     {
         Serial.print(i);
         Serial.print(": ");
@@ -454,7 +458,7 @@ void printNeighbors()
     }
 }
 
-void moveCursor(int direction)
+void moveCursor(int8_t direction)
 {
     switch (direction)
     {
@@ -538,7 +542,7 @@ void checkButtons()
     checkButtonPress(0);
 }
 
-void checkButtonPress(int button)
+void checkButtonPress(uint8_t button)
 {
     if (state != button)
     {
@@ -546,7 +550,7 @@ void checkButtonPress(int button)
         //Serial.println(button);
 
         state = button;
-        int color_id = getPixel(cursorX, cursorY);
+        uint8_t color_id = getPixel(cursorX, cursorY);
         if (button == 1 && color_id != NON && color_id != EXT && color_id != BOR)
         {
             cursorState = !cursorState;
@@ -555,8 +559,8 @@ void checkButtonPress(int button)
         if (cursorState == CURSOR_SELECTED)
         {
             getNeighboringPixels(cursorX, cursorY);
-            int carSegments = neighbors[MAX_VEHICLE_SIZE - 1].x;
-            int dir = neighbors[MAX_VEHICLE_SIZE - 1].y;
+            uint8_t carSegments = neighbors[MAX_VEHICLE_SIZE - 1].x;
+            int8_t dir = neighbors[MAX_VEHICLE_SIZE - 1].y;
             //Serial.print("direction: ");
             //Serial.println(dir);
             //Serial.print("Segments: ");
