@@ -63,8 +63,8 @@ uint8_t state = 0;
 
 uint8_t boardSize = 0;
 uint8_t *pixel = NULL;
+uint8_t levelNo = 1;
 
-// Not more than one level, because out of RAM otherwise :/
 uint8_t level1[8 * 8] = {
     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR,
     BOR, NON, CYE, CYE, BWH, NON, CB1, BOR,
@@ -76,27 +76,27 @@ uint8_t level1[8 * 8] = {
     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
 Level lvl1 = {level1, 8, 4, 3};
 
-// uint8_t level2[8 * 8] = {
-//     BOR, BOR, BOR, BOR, EXT, BOR, BOR, BOR,
-//     BOR, NON, NON, NON, NON, NON, NON, BOR,
-//     BOR, CYE, BWH, NON, CB1, CB1, CB1, BOR,
-//     BOR, CYE, BWH, TOR, TOR, NON, CG1, BOR,
-//     BOR, CG2, CG2, NON, NON, CB2, CG1, BOR,
-//     BOR, NON, CPU, CPU, CRE, CB2, NON, BOR,
-//     BOR, NON, NON, NON, CRE, CLG, CLG, BOR,
-//     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
-// Level lvl1 = {level2, 8, 4, 5};
+uint8_t level2[8 * 8] = {
+    BOR, BOR, BOR, BOR, EXT, BOR, BOR, BOR,
+    BOR, NON, NON, NON, NON, NON, NON, BOR,
+    BOR, CYE, BWH, NON, CB1, CB1, CB1, BOR,
+    BOR, CYE, BWH, TOR, TOR, NON, CG1, BOR,
+    BOR, CG2, CG2, NON, NON, CB2, CG1, BOR,
+    BOR, NON, CPU, CPU, CRE, CB2, NON, BOR,
+    BOR, NON, NON, NON, CRE, CLG, CLG, BOR,
+    BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
+Level lvl2 = {level2, 8, 4, 5};
 
-// uint8_t level3[8 * 8] = {
-//     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR,
-//     BOR, CYE, CYE, BWH, NON, CB1, TOR, BOR,
-//     BOR, NON, NON, BWH, NON, CB1, TOR, BOR,
-//     BOR, CG1, NON, BWH, CRE, CRE, TOR, EXT,
-//     BOR, CG1, NON, NON, CB2, CLG, CLG, BOR,
-//     BOR, NON, CBL, CBL, CB2, NON, NON, BOR,
-//     BOR, CPU, CPU, NON, NON, TGR, TGR, BOR,
-//     BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
-// Level lvl1 = {level3, 8, 4, 5};
+uint8_t level3[8 * 8] = {
+    BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR,
+    BOR, CYE, CYE, BWH, NON, CB1, TOR, BOR,
+    BOR, NON, NON, BWH, NON, CB1, TOR, BOR,
+    BOR, CG1, NON, BWH, CRE, CRE, TOR, EXT,
+    BOR, CG1, NON, NON, CB2, CLG, CLG, BOR,
+    BOR, NON, CBL, CBL, CB2, NON, NON, BOR,
+    BOR, CPU, CPU, NON, NON, TGR, TGR, BOR,
+    BOR, BOR, BOR, BOR, BOR, BOR, BOR, BOR};
+Level lvl3 = {level3, 8, 4, 5};
 
 uint8_t winScreen[16 * 16] = {
     NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON, NON,
@@ -434,10 +434,23 @@ bool noCollision(int8_t posX, int8_t posY, uint8_t allowedColor)
     {
         // WIN
         while(true) {
-            changeLevel(lvlWin);
-            delay(1000);
-            changeLevel(lvlEmpty);
-            delay(300);
+            for(uint8_t i = 0; i < 3; i++) {
+                changeLevel(lvlWin);
+                delay(1000);
+                changeLevel(lvlEmpty);
+                delay(300);
+            }
+
+            if(levelNo < 3) {
+                if(levelNo == 1) {
+                    changeLevel(lvl2);
+                }else{
+                    changeLevel(lvl3);
+                }
+
+                levelNo++;
+                return false; // don't move car after level has already changed
+            }
         }
 
         return true;
@@ -615,7 +628,7 @@ void loop()
 {
     uint32_t ms = millis();
     DrawOneFrame(ms % BLINK_RATE + 1);
-    delay(10);
+    delay(10); // prevent flickering
 
     checkButtons();
 }

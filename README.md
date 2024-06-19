@@ -20,9 +20,7 @@ Belegung der Tastenmatrix:
 |  | - |    -    | **[↓]** |    -    |
 
 ## Spielende
-Aufgrund von mangelndem RAM kann immer nur ein Level geladen werden. Nach Abschluss kann es durch den Reset-Knopf des Arduino erneut gestartet werden.
-
-Weitere Level mit unterschiedlichen Schwierigkeitsgraden sind im Code definiert, müssen aber entsprechend ein-/auskommentiert und das Programm erneut auf den Ardino geladen werden.
+Aktuell gibt es 3 verschiedene Level mit unterschiedlichen Schwierigkeitsgraden. Nach Abschluss eines Levels blinkt 3x "you won" auf der RGB-Matrix auf, danach wird das nachfolgende Level gestartet. Nach Abschluss des letzten Levels blinkt "you won" dauerhaft und durch den Reset-Knopf des Arduino kann erneut mit Level 1 gestartet werden.
 
 ## Hardware
 - Arduino Uno Rev. 3
