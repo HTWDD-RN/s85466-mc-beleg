@@ -32,6 +32,8 @@ Aktuell gibt es 3 verschiedene Level mit unterschiedlichen Schwierigkeitsgraden.
 
 ## Software
 
+Code basiert auf [Beispiel XYMatrix aus FastLED-Bibliothek](https://github.com/FastLED/FastLED/blob/master/examples/XYMatrix/XYMatrix.ino)
+
 ### Wichtige Variablen-Rollen
 
 | Rolle | Name(n)  | Bschreibung | Wertebereich | ⇒ Datentyp |
